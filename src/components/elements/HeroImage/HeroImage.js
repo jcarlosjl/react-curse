@@ -8,3 +8,5 @@ const HeroImage = (props) => {
         </div>
     )
 }
+
+export default HeroImage;
