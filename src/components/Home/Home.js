@@ -20,7 +20,23 @@ export default class Home extends Component {
 
     componentDidMount() {
         this.setState({loading: true});
-        const endPoint = `${API_URL}movie/popular?api_key=${API_KEY}&lang=es-ES&page=1`;
+        const endPoint = `${API_URL}movie/popular?api_key=${API_KEY}&language=es-ES&page=1`;
+        this.fetchItems(endPoint);
+    }
+
+    searchItems = (searchTerm) => {
+        let endPoint = '';
+        this.setState({
+            movies: [],
+            loading: true,
+            searchTerm
+        });
+        if (searchTerm === '') {
+            endPoint = `${API_URL}movie/popular?api_key=${API_KEY}&language=es-ES&page=1`;
+        } else {
+            endPoint = `${API_URL}search/movie?api_key=${API_KEY}&language=es-ES&query=${searchTerm}`;
+        }
+
         this.fetchItems(endPoint);
     }
 
@@ -60,7 +76,7 @@ export default class Home extends Component {
                     <HeroImage image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}/${this.state.heroImage.backdrop_path}`}
                     title={this.state.heroImage.original_title} 
                     text={this.state.heroImage.overview}/>
-                    <SearchBar />
+                    <SearchBar callback={this.searchItems}/>
                 </div>: null }
                 <FourColGrid />
                 <Spinner />
