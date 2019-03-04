@@ -79,20 +79,21 @@ export default class Home extends Component {
     }
 
     render() {
+        const{movies, heroImage, loading, currentPage, totalPages, searchTerm} = this.state;
         return (
             <div className="rmdb-home">
-                {this.state.heroImage ?
+                {heroImage ?
                 <div>
-                    <HeroImage image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}/${this.state.heroImage.backdrop_path}`}
-                    title={this.state.heroImage.original_title} 
-                    text={this.state.heroImage.overview}/>
+                    <HeroImage image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}/${heroImage.backdrop_path}`}
+                    title={heroImage.original_title} 
+                    text={heroImage.overview}/>
                     <SearchBar callback={this.searchItems}/>
                 </div>: null }
                 <div className="rmdb-home-grid">
                     <FourColGrid 
-                    header={this.state.searchTerm ? 'Search Result' : 'Popular Movies'}
-                    loading={this.state.loading}>
-                        {this.state.movies.map((movie, i) => {
+                    header={searchTerm ? 'Search Result' : 'Popular Movies'}
+                    loading={loading}>
+                        {movies.map((movie, i) => {
                             return (
                                 <MovieThumb 
                                 key={i}
@@ -104,8 +105,8 @@ export default class Home extends Component {
                         })}
                     </FourColGrid>
                 </div>
-                {this.state.loading ? <Spinner /> : null}
-                {this.state.currentPage <= this.state.totalPages && !this.state.loading ? <LoadMoreBtn onClick={this.loadMoreItems} text="Load more movies"/> : null}
+                {loading ? <Spinner /> : null}
+                {currentPage <= totalPages && !loading ? <LoadMoreBtn onClick={this.loadMoreItems} text="Load more movies"/> : null}
             </div>
         )
     }
