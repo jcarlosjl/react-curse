@@ -19,6 +19,12 @@ export default class Home extends Component {
     }
 
     componentDidMount() {
+        const localState = localStorage.getItem('HomeState');
+        if (localState) {
+            this.setState({...JSON.parse(localState)});
+            return;
+        }
+
         this.setState({loading: true});
         const endPoint = `${API_URL}movie/popular?api_key=${API_KEY}&language=es-ES&page=1`;
         this.fetchItems(endPoint);
@@ -51,6 +57,10 @@ export default class Home extends Component {
                 loading: false,
                 currentPage: result.page,
                 totalPages: result.total_pages
+            },() => {
+                if (this.state.searchTerm === '') {
+                    localStorage.setItem('HomeState', JSON.stringify(this.state));
+                }
             });
         });
     }
