@@ -46,25 +46,25 @@ export default class Home extends Component {
         this.fetchItems(endPoint);
     }
 
-    fetchItems = (endPoint) => {
-        fetch(endPoint)
-        .then(result => result.json())
-        .then(result => {
-            console.log(result);
+    fetchItems = async endPoint => {
+        const {movies, heroImage, searchTerm} = this.state;
+        const result = await (await fetch(endPoint)).json();
+        try {
             this.setState({
-                movies: [...this.state.movies, ...result.results],
-                heroImage: this.state.heroImage || result.results[0],
+                movies: [...movies, ...result.results],
+                heroImage: heroImage || result.results[0],
                 loading: false,
                 currentPage: result.page,
                 totalPages: result.total_pages
             },() => {
-                if (this.state.searchTerm === '') {
+                if (searchTerm === '') {
                     localStorage.setItem('HomeState', JSON.stringify(this.state));
                 }
             });
-        });
-    }
-
+        } catch(e) {
+            console.log("There was an error: ", e)
+        };
+    };
     loadMoreItems = () => {
         let endPoint = '';
         this.setState({ loading: true });
