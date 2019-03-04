@@ -29,32 +29,35 @@ class Movie extends Component {
         this.fetchItems(endpoint);
     }
 
-    fetchItems = (endpoint) => {
-        fetch(endpoint)
-        .then(result => result.json())
-        .then(result => {
-            console.log(result);
-            if (result.status_code) {
-                this.setState({ loading: false });
-            } else {
-                this.setState({movie: result}, () => {
-                    const endpoint = `${API_URL}movie/${this.props.match.params.movieId}/credits?api_key=${API_KEY}&language=es-ES`;
-                    fetch(endpoint)
-                    .then(result => result.json())
-                    .then(result => {
-                        const directors = result.crew.filter((member) => member.job === 'Director');
-                        this.setState({
-                            loading: false,
-                            actors: result.cast,
-                            directors
-                        }, () => {
-                            localStorage.setItem(`${this.props.match.params.movieId}`, JSON.stringify(this.state));
-                        });
-                    });
-                });
-            }
-        })
-        .catch(error => console.error('Error:', error));
+    fetchItems = async endpoint => {
+        const {match} = this.props;
+        let result = await (await fetch(endpoint)).json();
+        
+        console.log(result);
+
+        if (result.status_code) {
+            this.setState({'loading': false});
+            return;
+        }
+
+        this.setState({movie: result});
+        const creditsEndpoint = `${API_URL}movie/${match.params.movieId}/credits?api_key=${API_KEY}&language=es-ES`;
+
+        result = await (await fetch(creditsEndpoint)).json();
+
+        if (result.status_code) {
+            this.setState({loading: false});
+            return;
+        }
+
+        const directors = result.crew.filter((member) => member.job === 'Director');
+        this.setState({
+            loading: false,
+            actors: result.cast,
+            directors
+        }, () => {
+            localStorage.setItem(`${match.params.movieId}`, JSON.stringify(this.state));
+        });
     }
 
     render() {
