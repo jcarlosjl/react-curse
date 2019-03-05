@@ -26,24 +26,30 @@ export default class Home extends Component {
         }
 
         this.setState({loading: true});
-        const endPoint = `${API_URL}movie/popular?api_key=${API_KEY}&language=es-ES&page=1`;
-        this.fetchItems(endPoint);
+        this.fetchItems(this.popularEP(false)(''));
     }
 
-    searchItems = (searchTerm) => {
-        let endPoint = '';
-        this.setState({
-            movies: [],
-            loading: true,
-            searchTerm
-        });
-        if (searchTerm === '') {
-            endPoint = `${API_URL}movie/popular?api_key=${API_KEY}&language=es-ES&page=1`;
-        } else {
-            endPoint = `${API_URL}search/movie?api_key=${API_KEY}&language=es-ES&query=${searchTerm}`;
-        }
+    createEndpoint = type => loadMore => searchTerm =>
+        `${API_URL}${type}?api_key=${API_KEY}&language=es-ES&page=${loadMore 
+            && this.state.currentPage + 1}&query=${searchTerm}`;
 
-        this.fetchItems(endPoint);
+    searchEP = this.createEndpoint('search/movie');
+    popularEP = this.createEndpoint('movie/popular');
+
+    updateItems = (loadMore, newSearchTerm) => {
+        const {movies, searchTerm} = this.state;
+
+        this.setState({
+            movies: loadMore ? [...movies] : [],
+            loading: true,
+            searchTerm: loadMore ? searchTerm : newSearchTerm,
+        }, () => {
+            this.fetchItems(
+                !this.state.searchTerm
+                ? this.popularEP(loadMore)('')
+                : this.searchEP(loadMore)(this.state.searchTerm)
+            )
+        });
     }
 
     fetchItems = async endPoint => {
@@ -65,30 +71,18 @@ export default class Home extends Component {
             console.log("There was an error: ", e)
         };
     };
-    loadMoreItems = () => {
-        let endPoint = '';
-        this.setState({ loading: true });
-
-        if (this.state.searchTerm === '') {
-            endPoint = `${API_URL}movie/popular?api_key=${API_KEY}&lang=es-ES&page=${this.state.currentPage + 1}`
-        } else {
-            endPoint = `${API_URL}search/movie?api_key=${API_KEY}&lang=es-ES&query=${this.state.searchTerm}&page=${this.state.currentPage + 1}`
-        }
-
-        this.fetchItems(endPoint);
-    }
 
     render() {
         const{movies, heroImage, loading, currentPage, totalPages, searchTerm} = this.state;
         return (
             <div className="rmdb-home">
-                {heroImage ?
+                {heroImage && !searchTerm ?
                 <div>
                     <HeroImage image={`${IMAGE_BASE_URL}${BACKDROP_SIZE}/${heroImage.backdrop_path}`}
                     title={heroImage.original_title} 
                     text={heroImage.overview}/>
-                    <SearchBar callback={this.searchItems}/>
                 </div>: null }
+                <SearchBar callback={this.updateItems}/>
                 <div className="rmdb-home-grid">
                     <FourColGrid 
                     header={searchTerm ? 'Search Result' : 'Popular Movies'}
@@ -106,7 +100,7 @@ export default class Home extends Component {
                     </FourColGrid>
                 </div>
                 {loading ? <Spinner /> : null}
-                {currentPage <= totalPages && !loading ? <LoadMoreBtn onClick={this.loadMoreItems} text="Load more movies"/> : null}
+                {currentPage < totalPages && !loading ? <LoadMoreBtn onClick={this.updateItems} text="Load more movies"/> : null}
             </div>
         )
     }
